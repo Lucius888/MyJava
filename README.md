@@ -6,7 +6,7 @@
 
 ## java基础面试
 
-[基础问题](/Java/Java基础/Java基础.md)
+[基础问题](Interview/Java/Java基础/Java基础.md)
 
 ## 并发
 
