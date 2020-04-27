@@ -14,17 +14,6 @@
 
 <!-- more -->
 
-## Python
-
-- [awesome-python-login-model](<https://github.com/CriseLYJ/awesome-python-login-model>) : 模拟登陆一些大型网站的demo，个人觉得不错，值得学习。**star:8403**
-- [pyppeteer](<https://github.com/miyakogi/pyppeteer>) : 模拟动态加载js，比selenium稍微好用一些。**star:1924**
-- [requests](<https://github.com/psf/requests>) :Python HTTP Requests for Humans™ ✨🍰✨ **star:39860**
-- [requests-html](<https://github.com/psf/requests-html>) : Pythonic HTML Parsing for Humans™  **star:10111**
-- [httpx](<https://github.com/encode/httpx>) A next generation HTTP client for Python. 🦋 <https://www.encode.io/httpx> **star:1900**
-- [PySimpleGUI](<https://github.com/PySimpleGUI/PySimpleGUI>) : 做一些简单的GUI，可以用这个，简单应用。**star:1608**
-- [bokeh](<https://github.com/bokeh/bokeh>) Interactive Web Plotting for Python。 **star:10701**
-- [wxpy](<https://github.com/youfou/wxpy>) 微信机器人 / 可能是最优雅的微信个人号 API ✨✨ [http://wxpy.readthedocs.io](http://wxpy.readthedocs.io/) **star:10700**
-
 ## Java
 
 - [Awesome Java](<https://github.com/akullpp/awesome-java>) A curated list of awesome frameworks, libraries and software for the Java programming language. **star:21651**
