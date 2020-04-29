@@ -1,8 +1,88 @@
-## 引言
+## JVM - 内存模型
 
-**JVM - 类加载机制**
+![](https://www.pdai.tech/_images/pics/c9ad2bf4-5580-4018-bce4-1b9a71804d9c.png)
 
-## 类的生命周期
+### 程序计数器
+
+记录正在执行的虚拟机字节码指令的地址（如果正在执行的是本地方法则为空）。
+
+### Java虚拟机栈
+
+每个 Java 方法在执行的同时会创建一个栈帧用于存储局部变量表、操作数栈、常量池引用等信息，从调用直至执行完成的过程，就对应着一个栈帧在 Java 虚拟机栈中入栈和出栈的过程。
+
+![](https://www.pdai.tech/_images/pics/926c7438-c5e1-4b94-840a-dcb24ff1dafe.png)
+
+可以通过 -Xss 这个虚拟机参数来指定每个线程的 Java 虚拟机栈内存大小：java -Xss512M HackTheJava
+
+该区域可能抛出以下异常：
+
+- 当线程请求的栈深度超过最大值，会抛出 StackOverflowError 异常；
+- 栈进行动态扩展时如果无法申请到足够内存，会抛出 OutOfMemoryError 异常。
+
+### 本地方法栈
+
+本地方法一般是用其它语言（C、C++ 或汇编语言等）编写的，并且被编译为基于本机硬件和操作系统的程序，对待这些方法需要特别处理。
+
+本地方法栈与 Java 虚拟机栈类似，它们之间的区别只不过是本地方法栈为本地方法服务。
+
+### 堆
+
+所有对象都在这里分配内存，是垃圾收集的主要区域（"GC 堆"）。
+
+现代的垃圾收集器基本都是采用分代收集算法，针对不同类型的对象采取不同的垃圾回收算法，可以将堆分成两块：
+
+- 新生代（Young Generation）
+- 老年代（Old Generation）
+
+新生代可以继续划分成以下三个空间：
+
+- Eden（伊甸园）
+- From Survivor（幸存者）
+- To Survivor
+
+堆不需要连续内存，并且可以动态增加其内存，增加失败会抛出 OutOfMemoryError 异常。
+
+可以通过 -Xms 和 -Xmx 两个虚拟机参数来指定一个程序的堆内存大小，第一个参数设置初始值，第二个参数设置最大值。java -Xms1M -Xmx2M HackTheJava
+
+### 方法区
+
+用于存放已被加载的类信息、常量、静态变量、即时编译器编译后的代码等数据。
+
+和堆一样不需要连续的内存，并且可以动态扩展，动态扩展失败一样会抛出 OutOfMemoryError 异常。
+
+对这块区域进行垃圾回收的主要目标是对常量池的回收和对类的卸载，但是一般比较难实现。
+
+JDK 1.7 之前，HotSpot 虚拟机把它当成永久代来进行垃圾回收。但是从 JDK 1.7 开始，已经把原本放在永久代的字符串常量池移到 Native Method 中。
+
+### 运行时常量池
+
+运行时常量池是方法区的一部分。
+
+Class 文件中的常量池（编译器生成的各种字面量和符号引用）会在类加载后被放入这个区域。
+
+除了在编译期生成的常量，还允许动态生成，例如 String 类的 intern()。
+
+### 直接内存
+
+在 JDK 1.4 中新加入了 NIO 类，它可以使用 Native 函数库直接分配堆外内存，然后通过一个存储在 Java 堆里的 DirectByteBuffer 对象作为这块内存的引用进行操作。
+
+这样能在一些场景中显著提高性能，因为避免了在 Java 堆和 Native 堆中来回复制数据。
+
+### 请你谈谈对OOM的认识
+
+- `java.lang.StackOverflowError`:栈空间溢出 ，递归调用卡死
+- `java.lang.OutOfMemoryError:Java heap space`:堆内存溢出 ， 对象过大
+- `java.lang.OutOfMemoryError:GC overhead limit exceeded`:GC回收时间过长
+- `java.lang.OutOfMemoryError:Direct buffer memory`执行内存挂了，比如：NIO
+- `java.lang.OutOfMemoryError:unable to create new native thread`
+    - 应用创建了太多线程，一个应用进程创建了多个线程，超过系统承载极限
+    - 你的服务器并不允许你的应用程序创建这么多线程，linux系统默认允许单个进程可以创建的线程数是1024，超过这个数量，就会报错
+    - 解决办法：降低应用程序创建线程的数量，分析应用给是否针对需要这么多线程，如果不是，减到最低修改linux服务器配置
+- `java.lang.OutOfMemoryError:Metaspace`:元空间主要存放了虚拟机加载的类的信息、常量池、静态变量、即时编译后的代码
+
+## 类加载机制
+
+### 类的生命周期
 
 其中类加载的过程包括了`加载`、`验证`、`准备`、`解析`、`初始化`五个阶段。在这五个阶段中，`加载`、`验证`、`准备`和`初始化`这四个阶段发生的顺序是确定的，*而`解析`阶段则不一定，它在某些情况下可以在初始化阶段之后开始，这是为了支持Java语言的运行时绑定（也成为动态绑定或晚期绑定）*。另外注意这里的几个阶段是按顺序开始，而不是按顺序进行或完成，因为这些阶段通常都是互相交叉地混合进行的，通常在一个阶段执行的过程中调用或激活另一个阶段。
 
@@ -10,7 +90,7 @@
 
 ![](https://www.pdai.tech/_images/jvm/java_jvm_classload_2.png)
 
-## 类的加载：查找并加载类的二进制数据
+#### 类的加载：查找并加载类的二进制数据
 
 加载时类加载过程的第一个阶段，在加载阶段，虚拟机需要完成以下三件事情：
 
@@ -32,7 +112,7 @@
 - 从专有数据库中提取.class文件
 - 将Java源文件动态编译为你.class文件
 
-### 验证：确保被加载的类的正确性
+#### 验证：确保被加载的类的正确性
 
 验证是连接阶段的第一步，这一阶段的目的是为了确保Class文件的字节流中包含的信息符合当前虚拟机的要求，并且不会危害虚拟机自身的安全。验证阶段大致会完成4个阶段的检验动作：
 
@@ -43,7 +123,7 @@
 
 验证阶段是非常重要的，但不是必须的，它对程序运行期没有影响，*如果所引用的类经过反复验证，那么可以考虑采用`-Xverifynone`参数来关闭大部分的类验证措施，以缩短虚拟机类加载的时间。*
 
-### 准备：为类的静态变量分配内存，并将其初始化为默认值
+#### 准备：为类的静态变量分配内存，并将其初始化为默认值
 
 准备阶段是正式为类变量分配内存并设置类变量初始值的阶段，**这些内存都将在方法区中分配**。对于该阶段有以下几点需要注意：
 
@@ -58,24 +138,18 @@
 - 如果在数组初始化时没有对数组中的各元素赋值，那么其中的元素将根据对应的数据类型而被赋予默认的零值。
 - 如果类字段的字段属性表中存在ConstantValue属性，即同时被final和static修饰，那么在准备阶段变量value就会被初始化为ConstValue属性所指定的值。假设上面的类变量value被定义为：`public static final int value = 3；`编译时Javac将会为value生成ConstantValue属性，在准备阶段虚拟机就会根据ConstantValue的设置将value赋值为3。我们可以理解为`static final`常量在编译期就将其结果放入了调用它的类的常量池中
 
-### 解析：把类中的符号引用转换为直接引用
+#### 解析：把类中的符号引用转换为直接引用
 
 解析阶段是虚拟机将常量池内的符号引用替换为直接引用的过程，解析动作主要针对`类`或`接口`、`字段`、`类方法`、`接口方法`、`方法类型`、`方法句柄`和`调用点`限定符7类符号引用进行。符号引用就是一组符号来描述目标，可以是任何字面量。
 
 `直接引用`就是直接指向目标的指针、相对偏移量或一个间接定位到目标的句柄。
 
-### 初始化
+#### 初始化
 
 初始化，为类的静态变量赋予正确的初始值，JVM负责对类进行初始化，主要对类变量进行初始化。在Java中对类变量进行初始值设定有两种方式：
 
 - 声明类变量是指定初始值
 - 使用静态代码块为类变量指定初始值
-
-#### JVM初始化步骤
-
-- 假如这个类还没有被加载和连接，则程序先加载并连接该类
-- 假如该类的直接父类还没有被初始化，则先初始化其直接父类
-- 假如类中有初始化语句，则系统依次执行这些初始化语句
 
 #### 类初始化时机
 
@@ -88,10 +162,6 @@
 - 初始化某个类的子类，则其父类也会被初始化
 - Java虚拟机启动时被标明为启动类的类，直接使用java.exe命令来运行某个主类
 
-### 使用
-
-类访问方法区内的数据结构的接口， 对象是Heap区的数据。
-
 ### 卸载
 
 **Java虚拟机将结束生命周期的几种情况**
@@ -101,9 +171,9 @@
 - 程序在执行过程中遇到了异常或错误而异常终止
 - 由于操作系统出现错误而导致Java虚拟机进程终止
 
-## 类加载器，JVM类加载机制
+### 类加载器
 
-### 类加载器的层次
+#### 类加载器的层次
 
 ![](https://www.pdai.tech/_images/jvm/java_jvm_classload_3.png)
 
@@ -135,50 +205,50 @@
 
 - `双亲委派机制`, 如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把请求委托给父加载器去完成，依次向上，因此，所有的类加载请求最终都应该被传递到顶层的启动类加载器中，只有当父加载器在它的搜索范围中没有找到所需的类时，即无法完成该加载，子加载器才会尝试自己去加载该类。
 
-  - 当AppClassLoader加载一个class时，它首先不会自己去尝试加载这个类，而是把类加载请求委派给父类加载器ExtClassLoader去完成。
-  - 当ExtClassLoader加载一个class时，它首先也不会自己去尝试加载这个类，而是把类加载请求委派给BootStrapClassLoader去完成。
-  - 如果BootStrapClassLoader加载失败（例如在$JAVA_HOME/jre/lib里未查找到该class），会使用ExtClassLoader来尝试加载；
-  - 若ExtClassLoader也加载失败，则会使用AppClassLoader来加载，如果AppClassLoader也加载失败，则会报出异常ClassNotFoundException。
+    - 当AppClassLoader加载一个class时，它首先不会自己去尝试加载这个类，而是把类加载请求委派给父类加载器ExtClassLoader去完成。
+    - 当ExtClassLoader加载一个class时，它首先也不会自己去尝试加载这个类，而是把类加载请求委派给BootStrapClassLoader去完成。
+    - 如果BootStrapClassLoader加载失败（例如在$JAVA_HOME/jre/lib里未查找到该class），会使用ExtClassLoader来尝试加载；
+    - 若ExtClassLoader也加载失败，则会使用AppClassLoader来加载，如果AppClassLoader也加载失败，则会报出异常ClassNotFoundException。
 
-  ```java
-  public Class<?> loadClass(String name)throws ClassNotFoundException {
-              return loadClass(name, false);
-      }
-      protected synchronized Class<?> loadClass(String name, boolean resolve)throws ClassNotFoundException {
-              // 首先判断该类型是否已经被加载
-              Class c = findLoadedClass(name);
-              if (c == null) {
-                  //如果没有被加载，就委托给父类加载或者委派给启动类加载器加载
-                  try {
-                      if (parent != null) {
-                           //如果存在父类加载器，就委派给父类加载器加载
-                          c = parent.loadClass(name, false);
-                      } else {
-                      //如果不存在父类加载器，就检查是否是由启动类加载器加载的类，通过调用本地方法native Class findBootstrapClass(String name)
-                          c = findBootstrapClass0(name);
-                      }
-                  } catch (ClassNotFoundException e) {
-                   // 如果父类加载器和启动类加载器都不能完成加载任务，才调用自身的加载功能
-                      c = findClass(name);
-                  }
-              }
-              if (resolve) {
-                  resolveClass(c);
-              }
-              return c;
-          }
-  ```
+    ### 双亲委派模型介绍
 
-  - **双亲委派优势**
-    - 系统类防止内存中出现多份同样的字节码
-    - 保证Java程序安全稳定运行
+    每一个类都有一个对应它的类加载器。系统中的 ClassLoder 在协同工作的时候会默认使用 **双亲委派模型** 。即在类加载的时候，系统会首先判断当前类是否被加载过。已经被加载的类会直接返回，否则才会尝试加载。加载的时候，首先会把该请求委派该父类加载器的 `loadClass()` 处理，因此所有的请求最终都应该传送到顶层的启动类加载器 `BootstrapClassLoader` 中。当父类加载器无法处理时，才由自己来处理。当父类加载器为null时，会使用启动类加载器 `BootstrapClassLoader` 作为父类加载器。
 
-  ### 自定义类加载器
+    ![参考-JavaGuide-ClassLoader](https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-6/classloader_WPS图片.png)
 
-  通常情况下，我们都是直接使用系统类加载器。但是，有的时候，我们也需要自定义类加载器。比如应用是通过网络来传输 Java 类的字节码，为保证安全性，这些字节码经过了加密处理，这时系统类加载器就无法对其进行加载，这样则需要自定义类加载器来实现。自定义类加载器一般都是继承自 ClassLoader 类，从上面对 loadClass 方法来分析来看，我们只需要重写 findClass 方法即可。
+    ```java
+    public class ClassLoaderDemo {
+        public static void main(String[] args) {
+            System.out.println("ClassLodarDemo's ClassLoader is " + ClassLoaderDemo.class.getClassLoader());
+            System.out.println("The Parent of ClassLodarDemo's ClassLoader is " + ClassLoaderDemo.class.getClassLoader().getParent());
+            System.out.println("The GrandParent of ClassLodarDemo's ClassLoader is " + ClassLoaderDemo.class.getClassLoader().getParent().getParent());
+        }
+    }
+    ClassLodarDemo's ClassLoader is sun.misc.Launcher$AppClassLoader@18b4aac2
+    The Parent of ClassLodarDemo's ClassLoader is sun.misc.Launcher$ExtClassLoader@1b6d3586
+    The GrandParent of ClassLodarDemo's ClassLoader is null
+    ```
 
-  注意：
+    `AppClassLoader`的父类加载器为`ExtClassLoader`
+    `ExtClassLoader`的父类加载器为null，**null并不代表`ExtClassLoader`没有父类加载器，而是 `BootstrapClassLoader`** 。
 
-  - 这里传递的文件名需要是类的全限定性名称，即`com.pdai.jvm.classloader.Test2`格式的，因为 defineClass 方法是按这种格式进行处理的。
-  - 最好不要重写loadClass方法，因为这样容易破坏双亲委托模式。
-  - 这类Test 类本身可以被 AppClassLoader 类加载，因此我们不能把com/pdai/jvm/classloader/Test2.class 放在类路径下。否则，由于双亲委托机制的存在，会直接导致该类由 AppClassLoader 加载，而不会通过我们自定义类加载器来加载。
+    其实这个双亲翻译的容易让别人误解，我们一般理解的双亲都是父母，这里的双亲更多地表达的是“父母这一辈”的人而已，并不是说真的有一个 Mother ClassLoader 和一个 Father ClassLoader 。另外，类加载器之间的“父子”关系也不是通过继承来体现的，是由“优先级”来决定。
+
+    ### 双亲委派模型的好处
+
+    双亲委派模型保证了Java程序的稳定运行，可以避免类的重复加载（JVM 区分不同类的方式不仅仅根据类名，相同的类文件被不同的类加载器加载产生的是两个不同的类），也保证了 Java 的核心 API 不被篡改。如果没有使用双亲委派模型，而是每个类加载器加载自己的话就会出现一些问题，比如我们编写一个称为 `java.lang.Object` 类的话，那么程序运行的时候，系统就会出现多个不同的 `Object` 类。
+
+    ### 如果我们不想用双亲委派模型怎么办？
+
+    为了避免双亲委托机制，我们可以自己定义一个类加载器，然后重写 `loadClass()` 即可。
+
+    ### 自定义类加载器
+
+    通常情况下，我们都是直接使用系统类加载器。但是，有的时候，我们也需要自定义类加载器。比如应用是通过网络来传输 Java 类的字节码，为保证安全性，这些字节码经过了加密处理，这时系统类加载器就无法对其进行加载，这样则需要自定义类加载器来实现。自定义类加载器一般都是继承自 ClassLoader 类，从上面对 loadClass 方法来分析来看，我们只需要重写 findClass 方法即可。
+
+    注意：
+
+    - 这里传递的文件名需要是类的全限定性名称，即`com.pdai.jvm.classloader.Test2`格式的，因为 defineClass 方法是按这种格式进行处理的。
+    - 最好不要重写loadClass方法，因为这样容易破坏双亲委托模式。
+    - 这类Test 类本身可以被 AppClassLoader 类加载，因此我们不能把com/pdai/jvm/classloader/Test2.class 放在类路径下。否则，由于双亲委托机制的存在，会直接导致该类由 AppClassLoader 加载，而不会通过我们自定义类加载器来加载。
+
