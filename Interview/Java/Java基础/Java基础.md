@@ -784,3 +784,41 @@ ConcurrentHashMap 和 Hashtable 的区别主要体现在实现线程安全的方
 
 - **底层数据结构：** JDK1.7的 ConcurrentHashMap 底层采用 **分段的数组+链表** 实现，JDK1.8 采用数组+链表/红黑树。Hashtable 的底层数据结构都是采用 **数组+链表** 的形式，数组是 HashMap 的主体，链表则是主要为了解决哈希冲突而存在的；
 - **实现线程安全的方式（重要）：** ① **在JDK1.7的时候，ConcurrentHashMap（分段锁）** 对整个桶数组进行了分割分段(Segment)，每一把锁只锁容器其中一部分数据，多线程访问容器里不同数据段的数据，就不会存在锁竞争，提高并发访问率。 **到了 JDK1.8 的时候已经摒弃了Segment的概念，而是直接用 Node 数组+链表+红黑树的数据结构来实现，并发控制使用 synchronized 和 CAS 来操作。整个看起来就像是优化过且线程安全的 HashMap，虽然在JDK1.8中还能看到 Segment 的数据结构，但是已经简化了属性，只是为了兼容旧版本；② **Hashtable(同一把锁) :使用 synchronized 来保证线程安全，会产生阻塞，效率非常低下。
+
+
+
+## 设计模式
+
+常见的设计模式有工厂模式、单例模式、迭代器模式、享元模式和观察者模式
+
+### 单例模式
+
+- 单例模式：确保某一个类只有一个实例，而且自行实例化，并向整个系统提供这个实例单例模式。
+
+**单例类的构造函数必须为私有，同时单例类必须提供一个全局访问点。**
+
+其中类变量uniqueInstance持有唯一的单例实例，类方法getInstance()来获取唯一的实例化对象
+
+```java
+//单例模式的简单实现
+public class Test{
+    private Test(){}
+    private static Test uniqueInstance = new Test();
+    private static Test getInstace(){
+        return uniqueInstance;
+    }
+}
+```
+
+
+
+#### 单例模式与全局变量的区别
+
+- 全局变量是对一个对象的静态引用，无法保证应用程序只有一个实例
+- 全局变量会造成程序可读性变差
+- 全局变量无法继承
+
+
+
+
+

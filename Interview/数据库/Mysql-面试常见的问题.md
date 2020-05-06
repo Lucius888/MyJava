@@ -1,7 +1,3 @@
-## 引言
-
-> Mysql，那可是老生常谈了，对于后端同学，那是必须要掌握的呀。
-
 ## 常见问题
 
 ### 数据库引擎innodb与myisam的区别？
@@ -191,6 +187,34 @@ MySQL InnoDB 存储引擎的默认支持的隔离级别是 REPEATABLE-READ（可
 因为隔离级别越低，事务请求的锁越少，所以大部分数据库系统的隔离级别都是READ-COMMITTED(读取提交内 容):，但是你要知道的是InnoDB 存储引擎默认使用 REPEATABLE-READ（可重读）并不会有任何性能损失。
 
 InnoDB 存储引擎在 分布式事务 的情况下一般会用到SERIALIZABLE(可串行化)隔离级别。
+
+
+
+## 内连接和外连接
+
+内连接只显示符合连接条件的记录，外连接除了显示符合条件的记录外还会显示表中的记录。
+
+### 内连接
+
+- 内连接语句：
+
+    ```select filedlist from table1 inner join table2 on table1.column =table2.column```
+
+- 
+
+### 外连接
+
+- 左外连接（LEFT OUTTER JOIN）
+- 右外连接（RIGHT OUTTER JOIN）
+- 全外连接（FULL OUTTER JOIN）
+
+外连接语句
+
+```select filedlist from table1 outer join table2 on table1.column =table2.column```
+
+
+
+
 
 ### 为什么使用索引？
 
