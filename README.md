@@ -2347,6 +2347,12 @@ WHERE A.Key IS NULL OR B.Key IS NULL
 | UNSIGNED           | 无符号                   |
 | CHARACTER SET name | 指定一个字符集           |
 
+# ⭐Redis
+
+
+
+
+
 # **⭐数据结构和算法**
 
 | 排序法 | 平均时间     | 最差情形    | 稳定度     | 额外空间 | 备注                          |
@@ -2610,6 +2616,8 @@ JDBC的DriverManager是一个工厂类，我们通过它来创建数据库连接
 
 # ⭐中间件
 
-## Redis
+## 
+
+
 
 ## RabbitMQ
