@@ -12,13 +12,6 @@
 4. 可集群
 5. 支持事务，操作都是原子性，所谓的原子性就是对数据的更改要么全部执行，要么全部不执行
 
-### 为什么要用Redis/为什么要用缓存？
-
-1. **高性能**：假如用户第一次访问数据库中的某些数据。这个过程会比较慢，因为是从硬盘上读取的。将该用户访问的数据存在缓存中，这样下一次再访问这些数据的时候就可以直接从缓存中获取了。操作缓存就是直接操作内存，所以速度相当快。如果数据库中的对应数据改变的之后，同步改变缓存中相应的数据即可！
-2. **高并发**：直接操作缓存能够承受的请求是远远大于直接访问数据库的，所以我们可以考虑把数据库中的部分数据转移到缓存中去，这样用户的一部分请求会直接到缓存这里而不用经过数据库。
-
-
-
 ### Redis为什么是单线程的？
 
 因为 cpu 不是 Redis 的瓶颈，Redis 的瓶颈最有可能是机器内存或者网络带宽。既然单线程容易实现，而且 cpu 又不会成为瓶颈，那就顺理成章地采用单线程的方案了。
@@ -31,50 +24,13 @@
 
 ### Redis 常见数据结构以及使用场景分析
 
-#### String
-
-> 常用命令: set,get,decr,incr,mget 等。
-
-String数据结构是简单的key-value类型，value其实不仅可以是String，也可以是数字。 常规key-value缓存应用； 常规计数：微博数，粉丝数等。
-
-#### Hash
-
-> 常用命令： hget,hset,hgetall 等。
-
-Hash 是一个 string 类型的 ﬁeld 和 value 的映射表，hash 特别适合用于存储对象，后续操作的时候，你可以直接仅 仅修改这个对象中的某个字段的值。 比如我们可以Hash数据结构来存储用户信息，商品信息等等。比如下面我就用 hash 类型存放了我本人的一些信息：
-
-```json
-key=JavaUser293847 
-value={ “id”: 1, “name”: “SnailClimb”, “age”: 22, “location”: “Wuhan, Hubei” }
-```
-
-#### List
-
-> 常用命令: lpush,rpush,lpop,rpop,lrange等
-
-list 就是链表，Redis list 的应用场景非常多，也是Redis最重要的数据结构之一，比如微博的关注列表，粉丝列表， 消息列表等功能都可以用Redis的 list 结构来实现。
-
-Redis list 的实现为一个双向链表，即可以支持反向查找和遍历，更方便操作，不过带来了部分额外的内存开销。
-
-另外可以通过 lrange 命令，就是从某个元素开始读取多少个元素，可以基于 list 实现分页查询，这个很棒的一个功 能，基于 redis 实现简单的高性能分页，可以做类似微博那种下拉不断分页的东西（一页一页的往下走），性能高。
-
-#### Set
-
-> 常用命令： sadd,spop,smembers,sunion 等
-
-set 对外提供的功能与list类似是一个列表的功能，特殊之处在于 set 是可以自动排重的。
-
-当你需要存储一个列表数据，又不希望出现重复数据时，set是一个很好的选择，并且set提供了判断某个成员是否在 一个set集合内的重要接口，这个也是list所不能提供的。可以基于 set 轻易实现交集、并集、差集的操作。
-
-比如：在微博应用中，可以将一个用户所有的关注人存在一个集合中，将其所有粉丝存在一个集合。Redis可以非常 方便的实现如共同关注、共同粉丝、共同喜好等功能。这个过程也就是求交集的过程，具体命令如下：`sinterstore key1 key2 key3`将交集存在key1内
-
-#### Sorted Set
-
-> 常用命令： zadd,zrange,zrem,zcard等
-
-和set相比，sorted set增加了一个权重参数score，使得集合中的元素能够按score进行有序排列。
-
-举例： 在直播系统中，实时排行信息包含直播间在线用户列表，各种礼物排行榜，弹幕消息（可以理解为按消息维 度的消息排行榜）等信息，适合使用 Redis 中的 SortedSet 结构进行存储。
+| 数据类型 | 结构存储的值                 | 常用命令                 | 使用场景                                       |
+| -------- | ---------------------------- | ------------------------ | ---------------------------------------------- |
+| String   | 可以是字符串或数字           | GET/SET/DEL              | 存储 json 字符串；主键自增                     |
+| Hash     | 包含键值对的无序散列表       | HSET/HGET/HDEL           | 存储对象类数据，如个人信息。相比string更加灵活 |
+| List     | 一个可进行头尾增删的双向链表 | RPUSH/RPOP/LRANGE/RINDEX | 好友列表；最新内容                             |
+| Set      | 无序字符串                   | SADD/SMENBERS/SISMEMBER  | 共同好友：取交集                               |
+| Zset     | 使用分值的概念有序保存元素   | ZADD/ZRANGE              | 基于共同好友，加上排序功能——好友排序           |
 
 ## Redis过期时间
 
@@ -129,7 +85,7 @@ set 对外提供的功能与list类似是一个列表的功能，特殊之处在
 - 在相同的数据集下，AOF文件的大小一般会比RDB文件大。
 - AOF的速度会比RDB慢。
 
-### Redis 事务
+## Redis 事务
 
 Redis 事务可以一次执行多个命令， 并且带有以下三个重要的保证：
 
@@ -147,7 +103,7 @@ Redis 事务可以一次执行多个命令， 并且带有以下三个重要的�
 
 
 
-### Redis 常见性能问题和解决方案
+## Redis 常见性能问题和解决方案
 
 1. Master最好不要做任何持久化工作，如RDB内存快照和AOF日志文件
 2. 如果数据比较重要，某个Slave开启AOF备份数据，策略设置为每秒同步一次
@@ -249,8 +205,6 @@ Redis 事务可以一次执行多个命令， 并且带有以下三个重要的�
 
 https://coolshell.cn/articles/17416.html
 
-![Write-through_with_no-write-allocation](https://coolshell.cn/wp-content/uploads/2016/07/460px-Write-through_with_no-write-allocation.svg_.png)
-
 ### CAP(Cache Aside Pattern)
 
 读：命中缓存则直接返回，否则读数据库并写缓存
@@ -264,4 +218,8 @@ https://coolshell.cn/articles/17416.html
 读：命中缓存直接返回，否则数据库更新缓存，然后返回
 
 写：命中缓存则写缓存，然后由缓存写到数据库，未命中则直接写缓存。
+
+![Write-through_with_no-write-allocation](https://coolshell.cn/wp-content/uploads/2016/07/460px-Write-through_with_no-write-allocation.svg_.png)
+
+
 
