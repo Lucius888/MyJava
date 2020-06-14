@@ -1,4 +1,4 @@
-## 什么是线程和进程？
+## RejectedExecutionHandler什么是线程和进程？
 
 ### 进程？
 
@@ -91,6 +91,10 @@
 - 继承Thread类，重写run()方法
 - 实现Runable接口，实现接口中的run()方法（推荐）
 - 实现Callable接口，重写call()方法
+
+### 多线程之间的通信方式
+
+
 
 ## 如何终止线程
 
@@ -382,6 +386,10 @@ synchronized关键字和volatile关键字比较
 
 **如果你创建了一个`ThreadLocal`变量，那么访问这个变量的每个线程都会有这个变量的本地副本。他们可以使用 `get（）` 和 `set（）` 方法来获取默认值或将其值更改为当前线程所存的副本的值，从而避免了线程安全问题。**
 
+### 底层原理
+
+**每个Thread中都具备一个ThreadLocalMap，而ThreadLocalMap可以存储以ThreadLocal为key，`ThreadLocal` 对象调用`set`方法设置的值为value的键值对。**ThreadLocal 可以理解为只是ThreadLocalMap的封装，传递了变量值。
+
 ### ThreadLocal 内存泄露问题
 
 `ThreadLocalMap` 中使用的 key 为 `ThreadLocal` 的弱引用,而 value 是强引用。所以，如果 `ThreadLocal` 没有被外部强引用的情况下，在垃圾回收的时候，key 会被清理掉，而 value 不会被清理掉。这样一来，`ThreadLocalMap` 中就会出现key为null的Entry。假如我们不做任何措施的话，value 永远无法被GC 回收，这个时候就可能会产生内存泄露。ThreadLocalMap实现中已经考虑了这种情况，在调用 `set()`、`get()`、`remove()` 方法的时候，会清理掉 key 为 null 的记录。使用完 `ThreadLocal`方法后 最好手动调用`remove()`方法
@@ -398,11 +406,7 @@ synchronized关键字和volatile关键字比较
         }
 ```
 
-**弱引用介绍：**
 
-> 如果一个对象只具有弱引用，那就类似于**可有可无的生活用品**。弱引用与软引用的区别在于：只具有弱引用的对象拥有更短暂的生命周期。在垃圾回收器线程扫描它 所管辖的内存区域的过程中，一旦发现了只具有弱引用的对象，不管当前内存空间足够与否，都会回收它的内存。不过，由于垃圾回收器是一个优先级很低的线程， 因此不一定会很快发现那些只具有弱引用的对象。
->
-> 弱引用可以和一个引用队列（ReferenceQueue）联合使用，如果弱引用所引用的对象被垃圾回收，Java虚拟机就会把这个弱引用加入到与之关联的引用队列中。
 
 ## ThreadPool
 
@@ -419,6 +423,26 @@ synchronized关键字和volatile关键字比较
 - **FixedThreadPool** ： 该方法返回一个固定线程数量的线程池。该线程池中的线程数量始终不变。当有一个新的任务提交时，线程池中若有空闲线程，则立即执行。若没有，则新的任务会被暂存在一个任务队列中，待有线程空闲时，便处理在任务队列中的任务。
 - **SingleThreadExecutor：** 方法返回一个只有一个线程的线程池。若多余一个任务被提交到该线程池，任务会被保存在一个任务队列中，待线程空闲，按先入先出的顺序执行队列中的任务。
 - **CachedThreadPool：** 该方法返回一个可根据实际情况调整线程数量的线程池。线程池的线程数量不确定，但若有空闲线程可以复用，则会优先使用可复用的线程。若所有线程均在工作，又有新的任务提交，则会创建新的线程处理任务。所有线程在当前任务执行完毕后，将返回线程池进行复用。
+
+### ThreadPoolExecutor重要参数
+
+- **`corePoolSize` :** 核心线程数线程数定义了**最小可以同时运行的线程数量。**
+- **`maximumPoolSize` :** 当队列中存放的任务达到队列容量的时候，当前可以**同时运行的线程数量变为最大线程数。**
+- **keepAliveTime**: 当线程数大于核心线程数时，多余的空闲线程存活的最长时间
+- **TimeUnit** ：时间单位
+- **RejectedExecutionHandler**：拒绝策略
+
+### 拒绝策略
+
+- 直接丢弃（DiscardPolicy）
+- 丢弃队列中最老的任务(DiscardOldestPolicy)。
+- 抛异常(AbortPolicy)[默认]
+- 将任务分给调用线程来执行(CallerRunsPolicy)。
+
+### 使用Executors 创建线程池的弊端如下：
+
+- **`FixedThreadPool` 和 `SingleThreadExecutor`** ： 允许请求的队列长度为 Integer.MAX_VALUE,可能堆积大量的请求，从而导致 OOM。
+- **CachedThreadPool 和 ScheduledThreadPool** ： 允许创建的线程数量为 Integer.MAX_VALUE ，可能会创建大量线程，从而导致 OOM。
 
 ### 实现Runnable接口和Callable接口的区别
 
@@ -640,7 +664,7 @@ pool-1-thread-1 End. Time = Tue Nov 12 20:59:54 CST 2019
         // 通过 isRunning 方法判断线程池状态，线程池处于 RUNNING 状态才会被并且队列可以加入任务，该任务才会被加入进去
         if (isRunning(c) && workQueue.offer(command)) {
             int recheck = ctl.get();
-            // 再次获取线程池状态，如果线程池状态不是 RUNNING 状态就需要从任务队列中移除任务，并尝试判断线程是否全部执行完毕。同时执行拒绝策略。
+            // 再次获取								线程池状态，如果线程池状态不是 RUNNING 状态就需要从任务队列中移除任务，并尝试判断线程是否全部执行完毕。同时执行拒绝策略。
             if (!isRunning(recheck) && remove(command))
                 reject(command);
                 // 如果当前线程池为空就新创建一个线程并执行。
