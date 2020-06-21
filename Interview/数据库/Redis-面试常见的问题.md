@@ -217,7 +217,7 @@ https://coolshell.cn/articles/17416.html
 
 读：命中缓存直接返回，否则数据库更新缓存，然后返回
 
-写：命中缓存则写缓存，然后由缓存写到数据库，未命中则直接写缓存。
+写：命中缓存则写缓存，然后由缓存写到数据库，未命中则直接写数据库。
 
 ![Write-through_with_no-write-allocation](https://coolshell.cn/wp-content/uploads/2016/07/460px-Write-through_with_no-write-allocation.svg_.png)
 
