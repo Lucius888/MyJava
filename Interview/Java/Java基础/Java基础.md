@@ -727,6 +727,31 @@ public final Object readObject() throws IOException, ClassNotFoundException
     - 使用反射机制，根据这个字符串获得某个类的Class实例
     - 动态配置实例的属性
 
+## 静态代理、动态代理、cglib代理
+
+### 静态代理
+
+- 在编译器就确定了代理对象，在程序运行之前就已经存在了
+- 非入侵的对目标对象进行功能扩展，代理类和目标类需要实现相同的接口。存在大量重复的代码，增加了代码维护的复杂度。
+
+###  动态代理
+
+![image-20200705152032289](C:\Users\Lucius\AppData\Roaming\Typora\typora-user-images\image-20200705152032289.png)
+
+- 在运行期间通过反射机制动态的生成代理类
+- 使用动态代理的核心就是**InvocationHandler（接口）和Proxy（类）**
+- 使用Proxy.newProxyInstance创建一个代理类对象
+- InvocationHandler的核心就是动态代理处理程序：invoke方法，involke会返回我们我们想要的结果。
+- 动态代理避免了大量的重复代码，但是由于用到反射也增加了开销
+
+
+
+### CGLIB(Code Generation Library)代理
+
+前两种代理模式都需要目标对象实现一个接口，但是当目标对象没有接口的时候怎么办？
+
+cglib是针对类来实现代理的，他的原理是利用ASM开源包，对代理对象类的class文件加载进来，通过修改其字节码生成子类来处理，覆盖其中方法实现增强，但因为采用的是继承，所以不能对`final修饰`的类进行代理。
+
 ## ArrayList和LinkedList的区别？
 
 - ArrayList底层是数组，ArrayLIst查找数据快，线程不安全
