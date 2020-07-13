@@ -845,6 +845,3 @@ public class Test{
 - 全局变量无法继承
 
 
-
-
-

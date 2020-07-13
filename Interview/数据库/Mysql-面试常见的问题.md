@@ -154,7 +154,7 @@ T1 读取某个范围的数据，T2 在这个范围内插入新的数据，T1 �
 
 **MySQL InnoDB 存储引擎的默认支持的隔离级别是 REPEATABLE-READ（可重读）。**
 
-这里需要注意的是：与 SQL 标准不同的地方在于InnoDB 存储引擎在 REPEATABLE-READ（可重读）事务隔离级别 下使用的是Next-Key Lock 锁算法，因此可以避免幻读的产生。
+这里需要注意的是：与 SQL 标准不同的地方在于InnoDB 存储引擎在 REPEATABLE-READ（可重读）事务隔离级别 下使用的是间隙锁，因此可以避免幻读的产生。
 
 InnoDB 存储引擎在 分布式事务 的情况下一般会用到SERIALIZABLE(可串行化)隔离级别。
 
