@@ -158,8 +158,6 @@ java对于-128到127之间的数，会进行缓存，Integer i = 127时，会将
 
 Java中多态的两种表现形式：==重写和重载==
 
-
-
 **多态存在要有3个必要条件：继承、方法重写、父类引用指向子类对象。**
 
 ## 组合和继承
@@ -173,9 +171,7 @@ Java中多态的两种表现形式：==重写和重载==
 ### 重载
 
 - 发生在同一个类中，方法名必须相同，参数类型不同、个数不同、顺序不同
-- 不能通过 方法的访问权限、返回值类型和抛出的异常来进行重载
-
-
+- 不能通过 方法的访问权限、返回值类型和抛出的异常来进行重
 
 ### 重写
 
@@ -275,7 +271,7 @@ String s6 = "bbb";
 System.out.println(s5 == s6);  // true
 ```
 
-在 Java 7 之前，String Pool 被放在运行时常量池中，它属于永久代。而在 Java 7，String Pool 被移到堆中。这是因为永久代的空间有限，在大量使用字符串的场景下会导致 OutOfMemoryError 错误。
+在 Java 7 之前，String Pool 被放在运行时常量池中，它属于永久代。而在 Java 7，**String Pool 被移到堆中**。这是因为永久代的空间有限，在大量使用字符串的场景下会导致 OutOfMemoryError 错误。
 
 ## String中的“+”是如何实现的？
 
@@ -379,7 +375,7 @@ public class test1 {
 - String 中的 equals 方法是被重写过的，因为 object 的 equals 方法是比较的对象的内存地址，而 String 的 equals 方法比较的是对象的值。
 - 当创建 String 类型的对象时，虚拟机会在常量池中查找有没有已经存在的值和要创建的值相同的对象，如果有就把它赋给当前引用。如果没有就在常量池中重新创建一个 String 对象。
 
-## hashCode 与 equals (重要)
+## hashCode 与 equals 
 
 面试官可能会问你：“你重写过 hashcode 和 equals 么，为什么重写equals时必须重写hashCode方法？”
 
@@ -519,7 +515,7 @@ public class Sub extends Super {
 **在以下4种特殊情况下，finally块不会被执行：**
 
 1. 在finally语句块第一行发生了异常。 因为在其他行，finally块还是会得到执行
-2. 在前面的代码中用了System.exit(int)已退出程序。 exit是带参函数 ；若该语句在异常语句之后，finally会执行
+2. 在异常语句之前使用了System.exit(int)已退出程序。 exit是带参函数 ；n若该语句在异常语句之后，finally会执行
 3. 程序所在的线程死亡。
 4. 关闭CPU。
 
@@ -744,18 +740,21 @@ public final Object readObject() throws IOException, ClassNotFoundException
 - InvocationHandler的核心就是动态代理处理程序：invoke方法，involke会返回我们我们想要的结果。
 - 动态代理避免了大量的重复代码，但是由于用到反射也增加了开销
 
-
-
 ### CGLIB(Code Generation Library)代理
 
 前两种代理模式都需要目标对象实现一个接口，但是当目标对象没有接口的时候怎么办？
 
-cglib是针对类来实现代理的，他的原理是利用ASM开源包，对代理对象类的class文件加载进来，通过修改其字节码生成子类来处理，覆盖其中方法实现增强，但因为采用的是继承，所以不能对`final修饰`的类进行代理。
+cglib是针对类来实现代理的，他的原理是利用ASM开源包，对代理对象类的class文件加载进来，**通过修改其字节码生成子类来处理，覆盖其中方法实现增强，**但因为采用的是继承，所以不能对`final修饰`的类进行代理。
 
 ## ArrayList和LinkedList的区别？
 
-- ArrayList底层是数组，ArrayLIst查找数据快，线程不安全
+- ArrayList底层是数组，ArrayLIst查找数据快，线程不安全。
+    - get() 时间复杂度O(1);
+    - add() 直接在后面加O(1);
+    - remove()后面得元素要逐个向前移动O(n);
 - LinkedList底层是链表，LinkedList插入删除快，线程不安全
+    - get()时间复杂度O(n);
+    - add/remove 时间复杂度O(1);
 - ArrayList取代Vector的原因是，vector是线程安全的但带来的后果是会在同步操作上耗费大量时间。
 
 ## ArrayList扩容机制
@@ -801,8 +800,6 @@ cglib是针对类来实现代理的，他的原理是利用ASM开源包，对代
 
 - hash值与右移16位的hash做异或运算，得到经过扰动函数后的hash
 - 右移16位正好为32bit的一半，自己的高半区和低半区做异或，是为了混合原始哈希吗的高位和低位，来加大低位的随机性。而且混合后的低位掺杂了高位的部分特征，使高位的信息也被保留下来
-
-
 
 ## ConcurrentHashMap 和 Hashtable
 
