@@ -7,7 +7,7 @@
 ### Redis优点
 
 1. 速度快，因为数据存在内存中，类似于HashMap，HashMap的优势就是查找和操作的时间复杂度都是O(1)
-2. 支持丰富数据类型，支持string，list，set，sorted set，hash
+2. 支持丰富数据类型，支持string，list，set，zset，hash
 3. 可持久化，保证数据安全
 4. 可集群
 5. 支持事务，操作都是原子性，所谓的原子性就是对数据的更改要么全部执行，要么全部不执行
@@ -18,7 +18,7 @@
 
 ### I/O多路复用
 
-多路复用是指使用一个线程来检查多个文件描述符（Socket）的就绪状态，比如调用select和poll函数，传入多个文件描述符，如果有一个文件描述符就绪，则返回，否则阻塞直到超时。得到就绪状态后进行真正的操作可以在同一个线程里执行，也可以启动线程执行（比如使用线程池）。
+**多路复用是指使用一个线程来检查多个文件描述符（Socket）的就绪状态**，比如调用select和poll函数，传入多个文件描述符，如果有一个文件描述符就绪，则返回，否则阻塞直到超时。得到就绪状态后进行真正的操作可以在同一个线程里执行，也可以启动线程执行（比如使用线程池）。
 
 ![img](https://pic3.zhimg.com/80/v2-99c77dafd01970f9a60289bad5f3357b_720w.jpg?source=1940ef5c)
 
@@ -33,12 +33,6 @@
 9. 复制完成
 10. 返回成功
 11. 客户端 处理数据报
-
-### Redis相比memcached有哪些优势？
-
-1. memcached所有的值均是简单的字符串，redis作为其替代者，支持更为丰富的数据类型
-2. redis的速度比memcached快很多
-3. redis可以持久化其数据
 
 ### Redis 常见数据结构以及使用场景分析
 
@@ -63,8 +57,6 @@
 - allkeys-lru：从数据集（server.db[i].dict）中挑选最近最少使用的数据淘汰
 - allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰
 - no-enviction（驱逐）：禁止驱逐数据
-
-
 
 ## Redis持久化机制
 
@@ -223,6 +215,8 @@ https://coolshell.cn/articles/17416.html
 
 ### CAP(Cache Aside Pattern)
 
+Redis是CP原则
+
 读：命中缓存则直接返回，否则读数据库并写缓存
 
 写：直接更新数据库，然后删除对应缓存。
@@ -233,7 +227,7 @@ https://coolshell.cn/articles/17416.html
 
 读：命中缓存直接返回，否则数据库更新缓存，然后返回
 
-写：命中缓存则写缓存，然后由缓存写到数据库，未命中则直接写数据库。
+写：命中缓存则写缓存，然后由缓存写到数据库，**未命中则直接写数据库。**
 
 ![Write-through_with_no-write-allocation](https://coolshell.cn/wp-content/uploads/2016/07/460px-Write-through_with_no-write-allocation.svg_.png)
 
